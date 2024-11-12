@@ -1,12 +1,13 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import SignIn from './Components/SignIn.js'
 import Dashboard from './Components/Dashboard.js'
+import { UserProvider } from './context/UserContext.js'
 
 export default function App() {
 
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <UserProvider>
       <Router>
         <Routes>
           <Route path="/" element={<SignIn />} />
@@ -14,6 +15,6 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </div>
+    </UserProvider>
   )
 } 

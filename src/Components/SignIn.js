@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { LuUpload } from 'react-icons/lu'
 import { useNavigate } from 'react-router-dom'
+import { db } from '../config/firebase.config';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function SignIn() {
   const navigate = useNavigate()
@@ -17,6 +19,22 @@ export default function SignIn() {
   const [error, setError] = useState(null)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pin, setPin] = useState('')
+
+  useEffect(() => {
+    const testDB = async () => {
+      try {
+        const testDoc = await addDoc(collection(db, "test"), {
+          message: "Test connection",
+          timestamp: serverTimestamp()
+        });
+        console.log("Database connection successful, test doc ID:", testDoc.id);
+      } catch (error) {
+        console.error("Database connection error:", error);
+      }
+    };
+
+    testDB();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -47,14 +65,30 @@ export default function SignIn() {
     setError(null)
 
     try {
-      // Here you would typically make an API call to your backend
-      // Include the PIN if it was provided
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      navigate('/dashboard')
+      const userData = {
+        name: formData.name || '',
+        email: formData.email || '',
+        phone: formData.phone || '',
+        dateOfBirth: formData.dateOfBirth || '',
+        sex: formData.sex || '',
+        userType: formData.userType || '',
+        justification: formData.justification?.name || '',
+        pinCode: pinCode || '',
+        status: 'Active',
+        createdAt: serverTimestamp()
+      };
+
+      // Add to Firestore
+      const docRef = await addDoc(collection(db, "users"), userData);
+      console.log("User added with ID: ", docRef.id);
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      navigate('/dashboard');
     } catch (err) {
-      setError('Something went wrong. Please try again.')
+      console.error("Error adding user: ", err);
+      setError('Failed to register user. Please try again.');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

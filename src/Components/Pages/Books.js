@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LuStar, LuSearch } from 'react-icons/lu';
+import { FaEdit, FaTrash } from 'react-icons/fa';
+import { db } from '../../config/firebase.config';
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+
+// Define collection name at the top of the component
+const BOOKS_COLLECTION = 'books';
 
 export default function Books() {
+  const [books, setBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [newBook, setNewBook] = useState({
     title: '',
     author: '',
@@ -13,140 +21,80 @@ export default function Books() {
     publishedDate: ''
   });
 
-  const books = [
-    {
-      id: 1,
-      title: 'The Great Gatsby',
-      author: 'F. Scott Fitzgerald',
-      genre: 'Classic',
-      rating: 4.5,
-      status: 'Available',
-      publishedDate: '1925'
-    },
-    {
-      id: 2,
-      title: '1984',
-      author: 'George Orwell',
-      genre: 'Science Fiction',
-      rating: 4.7,
-      status: 'Available',
-      publishedDate: '1949'
-    },
-    {
-      id: 3,
-      title: 'Pride and Prejudice',
-      author: 'Jane Austen',
-      genre: 'Romance',
-      rating: 4.4,
-      status: 'Unavailable',
-      publishedDate: '1813'
-    },
-    {
-      id: 4,
-      title: 'To Kill a Mockingbird',
-      author: 'Harper Lee',
-      genre: 'Classic',
-      rating: 4.8,
-      status: 'Available',
-      publishedDate: '1960'
-    },
-    {
-      id: 5,
-      title: 'The Hobbit',
-      author: 'J.R.R. Tolkien',
-      genre: 'Fantasy',
-      rating: 4.6,
-      status: 'Available',
-      publishedDate: '1937'
-    },
-    {
-      id: 6,
-      title: 'Dune',
-      author: 'Frank Herbert',
-      genre: 'Science Fiction',
-      rating: 4.5,
-      status: 'Unavailable',
-      publishedDate: '1965'
-    },
-    {
-      id: 7,
-      title: 'The Catcher in the Rye',
-      author: 'J.D. Salinger',
-      genre: 'Classic',
-      rating: 4.2,
-      status: 'Available',
-      publishedDate: '1951'
-    },
-    {
-      id: 8,
-      title: 'The Lord of the Rings',
-      author: 'J.R.R. Tolkien',
-      genre: 'Fantasy',
-      rating: 4.9,
-      status: 'Available',
-      publishedDate: '1954'
-    },
-    {
-      id: 9,
-      title: 'Brave New World',
-      author: 'Aldous Huxley',
-      genre: 'Science Fiction',
-      rating: 4.3,
-      status: 'Unavailable',
-      publishedDate: '1932'
-    },
-    {
-      id: 10,
-      title: 'Jane Eyre',
-      author: 'Charlotte Brontë',
-      genre: 'Romance',
-      rating: 4.4,
-      status: 'Available',
-      publishedDate: '1847'
-    },
-    {
-      id: 11,
-      title: 'The Handmaid\'s Tale',
-      author: 'Margaret Atwood',
-      genre: 'Science Fiction',
-      rating: 4.6,
-      status: 'Available',
-      publishedDate: '1985'
-    },
-    {
-      id: 12,
-      title: 'The Picture of Dorian Gray',
-      author: 'Oscar Wilde',
-      genre: 'Classic',
-      rating: 4.3,
-      status: 'Available',
-      publishedDate: '1890'
+  useEffect(() => {
+    fetchBooks();
+  }, []);
+
+  const fetchBooks = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, BOOKS_COLLECTION));
+      const booksList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBooks(booksList);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching books:', error);
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleAddBook = async (e) => {
+    e.preventDefault();
+    try {
+      const bookToAdd = {
+        ...newBook,
+        rating: Number(newBook.rating),
+        createdAt: new Date()
+      };
+      
+      const docRef = await addDoc(collection(db, BOOKS_COLLECTION), bookToAdd);
+      setBooks([...books, { id: docRef.id, ...bookToAdd }]);
+      setNewBook({
+        title: '',
+        author: '',
+        genre: '',
+        rating: '',
+        status: 'Available',
+        publishedDate: ''
+      });
+      setShowAddForm(false);
+    } catch (error) {
+      console.error('Error adding book:', error);
+      setLoading(false);
+    }
+  };
 
   const filteredBooks = books.filter(book =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleAddBook = (e) => {
-    e.preventDefault();
-    const bookToAdd = {
-      ...newBook,
-      id: books.length + 1,
-      rating: Number(newBook.rating)
-    };
-    books.push(bookToAdd);
-    setNewBook({
-      title: '',
-      author: '',
-      genre: '',
-      rating: '',
-      status: 'Available',
-      publishedDate: ''
-    });
-    setShowAddForm(false);
+  const handleDelete = async (bookId) => {
+    if (window.confirm('Are you sure you want to delete this book?')) {
+      try {
+        await deleteDoc(doc(db, BOOKS_COLLECTION, bookId));
+        setBooks(books.filter(book => book.id !== bookId));
+      } catch (error) {
+        console.error('Error deleting book:', error);
+        alert('Failed to delete book');
+      }
+    }
   };
+
+  const handleEdit = async (book) => {
+    try {
+      const updatedBook = { ...book, status: book.status === 'Available' ? 'Unavailable' : 'Available' };
+      await updateDoc(doc(db, BOOKS_COLLECTION, book.id), updatedBook);
+      setBooks(books.map(b => b.id === book.id ? updatedBook : b));
+    } catch (error) {
+      console.error('Error editing book:', error);
+      alert('Failed to edit book');
+    }
+  };
+
+  if (loading) return <div className="text-center p-4">Loading...</div>;
 
   return (
     <div>
@@ -237,7 +185,7 @@ export default function Books() {
         </div>
       )}
 
-      {/* Table */}
+      {/* Books Table */}
       <div className="overflow-x-auto bg-white rounded-lg shadow">
         <table className="min-w-full table-auto">
           <thead className="bg-gray-50">
@@ -248,7 +196,7 @@ export default function Books() {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Published</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -279,12 +227,20 @@ export default function Books() {
                   <div className="text-sm text-gray-500">{book.publishedDate}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
-                    onClick={() => console.log('Read book:', book.title)}
-                  >
-                    Read Now
-                  </button>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => handleEdit(book)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      <FaEdit size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(book.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <FaTrash size={18} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
