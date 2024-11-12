@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
 import { LuSearch } from 'react-icons/lu';
+import { useNavigate } from 'react-router-dom';
+import '../SignIn';
 
 const Users = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newUser, setNewUser] = useState({
-    name: '',
-    email: '',
-    role: '',
-    status: 'Active',
-    joinDate: '',
-    lastLogin: ''
-  });
 
   const users = [
     {
@@ -61,24 +55,6 @@ const Users = () => {
     }
   ];
 
-  const handleAddUser = (e) => {
-    e.preventDefault();
-    const userToAdd = {
-      ...newUser,
-      id: users.length + 1,
-    };
-    users.push(userToAdd);
-    setNewUser({
-      name: '',
-      email: '',
-      role: '',
-      status: 'Active',
-      joinDate: '',
-      lastLogin: ''
-    });
-    setShowAddForm(false);
-  };
-
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,79 +76,12 @@ const Users = () => {
           <LuSearch className="absolute left-3 top-2.5 text-gray-400" size={20} />
         </div>
         <button
-          onClick={() => setShowAddForm(!showAddForm)}
+          onClick={() => navigate('/signin')}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 whitespace-nowrap"
         >
-          {showAddForm ? 'Cancel' : 'Add New User'}
+          Add New User
         </button>
       </div>
-
-      {/* Add User Form */}
-      {showAddForm && (
-        <div className="mb-6 bg-white text-gray-500  p-6 rounded-lg shadow">
-          <form onSubmit={handleAddUser} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Name"
-                className="w-full p-2 border rounded-lg"
-                value={newUser.name}
-                onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                required
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="w-full p-2 border rounded-lg"
-                value={newUser.email}
-                onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Role"
-                className="w-full p-2 border rounded-lg"
-                value={newUser.role}
-                onChange={(e) => setNewUser({...newUser, role: e.target.value})}
-                required
-              />
-              <select
-                className="w-full p-2 border rounded-lg"
-                value={newUser.status}
-                onChange={(e) => setNewUser({...newUser, status: e.target.value})}
-                required
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-              <input
-                type="date"
-                placeholder="Join Date"
-                className="w-full p-2 border rounded-lg"
-                value={newUser.joinDate}
-                onChange={(e) => setNewUser({...newUser, joinDate: e.target.value})}
-                required
-              />
-              <input
-                type="date"
-                placeholder="Last Login"
-                className="w-full p-2 border rounded-lg"
-                value={newUser.lastLogin}
-                onChange={(e) => setNewUser({...newUser, lastLogin: e.target.value})}
-                required
-              />
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-              >
-                Add User
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
 
       {/* Users Table */}
       <div className="bg-white text-gray-700 rounded-lg shadow overflow-hidden">

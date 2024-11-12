@@ -15,8 +15,8 @@ export default function Sidebar({ onNavigate, currentPage }) {
   ];
 
   return (
-    <aside className="sticky top-0 h-screen">
-      <nav className="h-full flex flex-col bg-white border-r shadow-sm">
+    <aside className="sticky top-0 h-screen ">
+      <nav className="h-full flex flex-col bg-white border-r shadow-sm dark:bg-indigo-600 dark:text-white">
         <div className="p-4 pb-2 flex justify-between items-center">
           <img
             src="https://img.logoipsum.com/243.svg"
@@ -27,14 +27,14 @@ export default function Sidebar({ onNavigate, currentPage }) {
           />
           <button
             onClick={() => setExpanded((curr) => !curr)}
-            className="p-1.5 rounded-lg bg-gray-700 hover:bg-gray-800"
+            className="p-1.5 rounded-lg bg-gray-500 text-white hover:bg-gray-800"
           >
             {expanded ? <LuChevronFirst size={20} /> : <LuChevronLast size={20} />}
           </button>
         </div>
 
         <SidebarContext.Provider value={{ expanded }}>
-          <ul className="flex-1 px-3">
+          <ul className="flex-1 px-3 ">
             {menuItems.map((item) => (
               <SidebarItem
                 key={item.id}
@@ -81,11 +81,11 @@ function SidebarItem({ icon, text, active, alert, onClick }) {
       className={`
         relative flex items-center py-2 px-3 my-1
         font-medium rounded-md cursor-pointer
-        transition-colors group
+        transition-colors group dark:text-indigo-100 dark:hover:bg-indigo-700
         ${
           active
-            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-            : "hover:bg-indigo-50 text-gray-600"
+            ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100"
+            : "hover:bg-indigo-50 text-gray-600 dark:hover:bg-indigo-700" 
         }
     `}
     >

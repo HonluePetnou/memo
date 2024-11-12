@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IoLanguageOutline } from 'react-icons/io5';
 import { IoMdArrowDropdown } from 'react-icons/io';
 
 function LanguageSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLang, setSelectedLang] = useState('English');
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -15,7 +29,7 @@ function LanguageSelector() {
   ];
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"

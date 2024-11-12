@@ -4,7 +4,7 @@ import Home from './Pages/Home';
 import Books from './Pages/Books';
 import Users from './Pages/Users';
 import Analytics from './Pages/Analytics';
-
+import Settings from './Pages/Settings';
 export default function Main({ currentPage }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -20,7 +20,7 @@ export default function Main({ currentPage }) {
       case 'analytics':
         return <Analytics />;
       case 'settings':
-        return <div>Settings Page</div>;
+        return <Settings />;
       default:
         return <Home />;
     }
